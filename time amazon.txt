@@ -1,0 +1,99 @@
+
+amazonsp <- datasets_812753_1391943_Amazon1
+amazonsp
+
+head(amazonsp)
+tail(amazonsp)
+str(amazonsp)
+summary(amazon.ts)
+summary(amazonsp)
+#time series ploting
+amazon.ts <- ts(amazonsp[,2])
+amazon.ts
+
+
+plot(amazon.ts)
+
+
+library(TTR)
+#keeping plots wiwth moving average having best accuracy
+close1 <- SMA(amazon.ts, n=2)
+close1
+Close.ts <- amazon.ts-close1
+Close.ts
+
+mse1=sum(Close.ts^2,na.rm=T)/5842
+mse1
+rmse =sqrt(mse1)
+rmse
+
+plot.ts(amazon.ts)
+
+#holt winters model
+
+close1hw <- HoltWinters(amazon.ts,beta=FALSE,gamma=FALSE)
+close1hw
+
+close1hw$fitted
+
+plot(close1hw,col='red',lwd=2)
+
+#Holt-Winters exponential smoothing without trend and without seasonal component.
+
+#Call:
+ # HoltWinters(x = amazon.ts, beta = FALSE, gamma = FALSE)
+
+#moothing parameters:
+ # alpha: 0.9416329
+#beta : FALSE
+#gamma: FALSE
+
+#Coefficients:
+ # [,1]
+#a 3158.028
+
+sqrt(close1hw$SSE/5842)
+# 14.06636
+
+#auto arima
+auto.arima(amazon.ts)
+auto.arima
+
+#forecast
+library(forecast)
+auto.arima(close1hw)
+
+close1forecast<-forecast:::forecast.HoltWinters(close1hw,h=50)
+close1forecast
+
+forecast:::plot.forecast(close1forecast,col='purple',lwd=2)
+
+acf(close1forecast$residuals,lag.max=10,na.action=na.pass)
+
+close1forecast$residuals
+close1forecast$fitted
+
+#box ljung test
+Box.test(close1forecast$residuals,lag=10,type='Ljung-Box')
+
+#describe hist and plot
+plot.ts(close1forecast$residuals,col='purple',lwd=1)
+library(psych)
+describe(close1forecast$residuals)
+hist(close1forecast$residuals,col='blue')
+
+#arima
+close1ARIMA<-arima(amazon.ts,order=c(5,2,0))
+close1ARIMA
+
+fcastclose1<-forecast(close1ARIMA,h=50)
+plot(fcastclose1)
+tsdisplay(residuals(close1ARIMA),lag.max=20,main="(5,2,0)Model Residuals",
+          col='purple',lwd=2)
+plot(close1ARIMA$residuals,lwd=3,col='green',main='Residual Plot(5,2,0')
+hist(close1ARIMA$residuals,col='green',main='Histogram of residuals(5,2,0)')
+library(pysch)
+describe(close1ARIMA$residuals)
+Box.test(close1ARIMA$residuals,lag=20,type='Ljung-Box')
+accuracy(close1ARIMA)
+
